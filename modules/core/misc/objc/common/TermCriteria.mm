@@ -5,6 +5,7 @@
 //
 
 #import "TermCriteria.h"
+#import "CVObjcUtil.h"
 
 @implementation TermCriteria {
     cv::TermCriteria native;
@@ -100,8 +101,6 @@
         return self.type == it.type && self.maxCount == it.maxCount && self.epsilon == it.epsilon;
     }
 }
-
-#define DOUBLE_TO_BITS(x)  ((Cv64suf){ .f = x }).i
 
 - (NSUInteger)hash {
     int prime = 31;

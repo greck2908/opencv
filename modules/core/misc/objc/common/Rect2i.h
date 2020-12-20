@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 @class Point2i;
@@ -23,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 * Represents a rectange the coordinate and dimension values of which are of type `int`
 */
 NS_SWIFT_NAME(Rect)
-CV_EXPORTS @interface Rect2i : NSObject
+@interface Rect2i : NSObject
 
 #pragma mark - Properties
 

@@ -2,7 +2,7 @@
 // It is subject to the license terms in the LICENSE file found in the top-level directory
 // of this distribution and at http://opencv.org/license.html.
 //
-// Copyright (C) 2018-2020 Intel Corporation
+// Copyright (C) 2018 Intel Corporation
 
 
 #include "precomp.hpp"
@@ -57,10 +57,10 @@ namespace
         }
 
         virtual EPtr compile(const ade::Graph &graph,
-                             const cv::GCompileArgs &compileArgs,
+                             const cv::GCompileArgs &,
                              const std::vector<ade::NodeHandle> &nodes) const override
         {
-            return EPtr{new cv::gimpl::GCPUExecutable(graph, compileArgs, nodes)};
+            return EPtr{new cv::gimpl::GCPUExecutable(graph, nodes)};
         }
    };
 }
@@ -73,9 +73,8 @@ cv::gapi::GBackend cv::gapi::cpu::backend()
 
 // GCPUExecutable implementation //////////////////////////////////////////////
 cv::gimpl::GCPUExecutable::GCPUExecutable(const ade::Graph &g,
-                                          const cv::GCompileArgs &compileArgs,
                                           const std::vector<ade::NodeHandle> &nodes)
-    : m_g(g), m_gm(m_g), m_compileArgs(compileArgs)
+    : m_g(g), m_gm(m_g)
 {
     // Convert list of operations (which is topologically sorted already)
     // into an execution script.
@@ -128,10 +127,9 @@ cv::GArg cv::gimpl::GCPUExecutable::packArg(const GArg &arg)
     // No API placeholders allowed at this point
     // FIXME: this check has to be done somewhere in compilation stage.
     GAPI_Assert(   arg.kind != cv::detail::ArgKind::GMAT
-                && arg.kind != cv::detail::ArgKind::GSCALAR
-                && arg.kind != cv::detail::ArgKind::GARRAY
-                && arg.kind != cv::detail::ArgKind::GOPAQUE
-                && arg.kind != cv::detail::ArgKind::GFRAME);
+              && arg.kind != cv::detail::ArgKind::GSCALAR
+              && arg.kind != cv::detail::ArgKind::GARRAY
+              && arg.kind != cv::detail::ArgKind::GOPAQUE);
 
     if (arg.kind != cv::detail::ArgKind::GOBJREF)
     {
@@ -151,7 +149,6 @@ cv::GArg cv::gimpl::GCPUExecutable::packArg(const GArg &arg)
     //   (and constructed by either bindIn/Out or resetInternal)
     case GShape::GARRAY:  return GArg(m_res.slot<cv::detail::VectorRef>().at(ref.id));
     case GShape::GOPAQUE: return GArg(m_res.slot<cv::detail::OpaqueRef>().at(ref.id));
-    case GShape::GFRAME:  return GArg(m_res.slot<cv::MediaFrame>().at(ref.id));
     default:
         util::throw_error(std::logic_error("Unsupported GShape type"));
         break;
@@ -169,8 +166,7 @@ void cv::gimpl::GCPUExecutable::setupKernelStates()
         const GCPUKernel& kernel = gcm.metadata(kernelNode).get<CPUUnit>().k;
         kernel.m_setupF(GModel::collectInputMeta(m_gm, kernelNode),
                         m_gm.metadata(kernelNode).get<Op>().args,
-                        kernelState,
-                        m_compileArgs);
+                        kernelState);
     }
 }
 
@@ -196,7 +192,7 @@ void cv::gimpl::GCPUExecutable::run(std::vector<InObj>  &&input_objs,
     {
         const auto &desc = gm.metadata(nh).get<Data>();
 
-        if (   desc.storage == Data::Storage::INTERNAL               // FIXME: to reconsider
+        if (   desc.storage == Data::Storage::INTERNAL
             && !util::holds_alternative<util::monostate>(desc.ctor))
         {
             // FIXME: Note that compile-time constant data objects (like
@@ -278,8 +274,4 @@ void cv::gimpl::GCPUExecutable::run(std::vector<InObj>  &&input_objs,
     } // for(m_script)
 
     for (auto &it : output_objs) magazine::writeBack(m_res, it.first, it.second);
-
-    // In/Out args clean-up is mandatory now with RMat
-    for (auto &it : input_objs) magazine::unbind(m_res, it.first);
-    for (auto &it : output_objs) magazine::unbind(m_res, it.first);
 }

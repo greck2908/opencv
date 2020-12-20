@@ -160,7 +160,7 @@ __kernel void sep_filter(__global uchar* Src, int src_step, int srcOffsetX, int 
         {
             sum = (WT) 0;
             for (i=0; i<=2*RADIUSY; i++)
-#if defined(INTEGER_ARITHMETIC)
+#if (defined(INTEGER_ARITHMETIC) && !INTEL_DEVICE)
                 sum = mad24(lsmem[liy + i][clocX], mat_kernelY[i], sum);
 #else
                 sum = mad(lsmem[liy + i][clocX], mat_kernelY[i], sum);
@@ -177,27 +177,25 @@ __kernel void sep_filter(__global uchar* Src, int src_step, int srcOffsetX, int 
         {
             // do second horizontal filter pass
             // and calculate final result
-            sum = (WT)(delta);
+            sum = 0.0f;
             for (i=0; i<=2*RADIUSX; i++)
-#if defined(INTEGER_ARITHMETIC)
+#if (defined(INTEGER_ARITHMETIC) && !INTEL_DEVICE)
                 sum = mad24(lsmemDy[liy][lix+i], mat_kernelX[i], sum);
 #else
                 sum = mad(lsmemDy[liy][lix+i], mat_kernelX[i], sum);
 #endif
 
-#if defined(SHIFT_BITS) && SHIFT_BITS > 0
-#if !defined(INTEGER_ARITHMETIC)
-            sum = sum * (1.0f / (1 << SHIFT_BITS));
+#ifdef INTEGER_ARITHMETIC
+#ifdef INTEL_DEVICE
+            sum = (sum + (1 << (SHIFT_BITS-1))) / (1 << SHIFT_BITS);
 #else
             sum = (sum + (1 << (SHIFT_BITS-1))) >> SHIFT_BITS;
 #endif
 #endif
-
             // store result into destination image
-            storepix(convertToDstT(sum), Dst + mad24(y + liy, dst_step, mad24(x, DSTSIZE, dst_offset)));
+            storepix(convertToDstT(sum + (WT)(delta)), Dst + mad24(y + liy, dst_step, mad24(x, DSTSIZE, dst_offset)));
         }
 
-        barrier(CLK_LOCAL_MEM_FENCE);
         for (int i = liy * BLK_X + lix; i < (RADIUSY*2) * (BLK_X+(RADIUSX*2)); i += BLK_X * BLK_Y)
         {
             int clocX = i % (BLK_X+(RADIUSX*2));

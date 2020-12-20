@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 * Mat representation of an array of Point objects
 */
 NS_SWIFT_NAME(MatOfPoint)
-CV_EXPORTS @interface MatOfPoint2i : Mat
+@interface MatOfPoint2i : Mat
 
 #pragma mark - Constructors
 

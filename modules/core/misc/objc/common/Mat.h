@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 #import <Foundation/Foundation.h>
@@ -23,41 +21,24 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- The class Mat represents an n-dimensional dense numerical single-channel or multi-channel array.
- ####Swift Example
- ```swift
- let mat = Mat(rows: 2, cols: 3, type: CvType.CV_8U)
- try! mat.put(row: 0, col: 0, data: [2, 3, 4, 4, 5, 6] as [Int8])
- print("mat: \(mat.dump())")
- ```
- ####Objective-C Example
- ```objc
- Mat* mat = [[Mat alloc] initWithRows:2 cols:3 type: CV_8U];
- [m1 put:0 col:0 data:@[@2, @3, @4, @3, @4, @5]];
- NSLog(@"mat: %@", [m1 dump]);
- ```
+* The class Mat represents an n-dimensional dense numerical single-channel or multi-channel array.
 */
-CV_EXPORTS @interface Mat : NSObject
+@interface Mat : NSObject
 
 #ifdef __cplusplus
-@property(readonly) cv::Ptr<cv::Mat> nativePtr;
+@property(readonly) cv::Mat* nativePtr;
 @property(readonly) cv::Mat& nativeRef;
 #endif
 
 #pragma mark - Constructors
 
 - (instancetype)init;
+- (void)dealloc;
 #ifdef __cplusplus
-- (instancetype)initWithNativeMat:(cv::Ptr<cv::Mat>)nativeMat;
-+ (instancetype)fromNativePtr:(cv::Ptr<cv::Mat>)nativePtr;
+- (instancetype)initWithNativeMat:(cv::Mat*)nativeMat;
++ (instancetype)fromNativePtr:(cv::Mat*)nativePtr;
 + (instancetype)fromNative:(cv::Mat&)nativeRef;
 #endif
-/**
- Creates a Mat object with the specified number of rows and columns and Mat type
- @param rows Number of rows
- @param cols Number of columns
- @param type Mat type (refer: `CvType`)
-*/
 - (instancetype)initWithRows:(int)rows cols:(int)cols type:(int)type;
 - (instancetype)initWithRows:(int)rows cols:(int)cols type:(int)type data:(NSData*)data;
 - (instancetype)initWithRows:(int)rows cols:(int)cols type:(int)type data:(NSData*)data step:(long)step;
@@ -97,7 +78,6 @@ CV_EXPORTS @interface Mat : NSObject
 - (void)createEx:(NSArray<NSNumber*>*)sizes type:(int)type  NS_SWIFT_NAME(create(sizes:type:));
 - (void)copySize:(Mat*)mat;
 - (Mat*)cross:(Mat*)mat;
-- (unsigned char*)dataPtr NS_SWIFT_NAME(dataPointer());
 - (int)depth;
 - (Mat*)diag:(int)diagonal;
 - (Mat*)diag;

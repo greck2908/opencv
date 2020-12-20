@@ -1,7 +1,5 @@
 # Face analytics pipeline with G-API {#tutorial_gapi_interactive_face_detection}
 
-@next_tutorial{tutorial_gapi_anisotropic_segmentation}
-
 [TOC]
 
 # Overview {#gapi_ifd_intro}

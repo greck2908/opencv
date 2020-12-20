@@ -2,8 +2,6 @@
 Using a cv::cuda::GpuMat with thrust {#tutorial_gpu_thrust_interop}
 ===========================================
 
-@tableofcontents
-
 @prev_tutorial{tutorial_gpu_basics_similarity}
 
 Goal

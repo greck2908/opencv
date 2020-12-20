@@ -203,9 +203,6 @@ enum CovarFlags {
     COVAR_COLS      = 16
 };
 
-//! @addtogroup core_cluster
-//!  @{
-
 //! k-Means flags
 enum KmeansFlags {
     /** Select random initial centers in each attempt.*/
@@ -219,18 +216,12 @@ enum KmeansFlags {
     KMEANS_USE_INITIAL_LABELS = 1
 };
 
-//! @} core_cluster
-
-//! @addtogroup core_array
-//! @{
-
 enum ReduceTypes { REDUCE_SUM = 0, //!< the output is the sum of all rows/columns of the matrix.
                    REDUCE_AVG = 1, //!< the output is the mean vector of all rows/columns of the matrix.
                    REDUCE_MAX = 2, //!< the output is the maximum (column/row-wise) of all rows/columns of the matrix.
                    REDUCE_MIN = 3  //!< the output is the minimum (column/row-wise) of all rows/columns of the matrix.
                  };
 
-//! @} core_array
 
 /** @brief Swaps two matrices
 */
@@ -1623,9 +1614,7 @@ elements.
 CV_EXPORTS_W bool checkRange(InputArray a, bool quiet = true, CV_OUT Point* pos = 0,
                             double minVal = -DBL_MAX, double maxVal = DBL_MAX);
 
-/** @brief converts NaNs to the given number
-@param a input/output matrix (CV_32F type).
-@param val value to convert the NaNs
+/** @brief converts NaN's to the given number
 */
 CV_EXPORTS_W void patchNaNs(InputOutputArray a, double val = 0);
 

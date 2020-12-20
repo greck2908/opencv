@@ -854,15 +854,15 @@ class CoreTest: OpenCVTestCase {
     }
 
     func testMeanStdDevMatMatMat() {
-        var mean = [Double]()
-        var stddev = [Double]()
-        Core.meanStdDev(src: rgbLena, mean: &mean, stddev: &stddev)
+        let mean = DoubleVector()
+        let stddev = DoubleVector()
+        Core.meanStdDev(src: rgbLena, mean: mean, stddev: stddev)
 
         let expectedMean = [105.3989906311035, 99.56269836425781, 179.7303047180176]
         let expectedDev = [33.74205485167219, 52.8734582803278, 49.01569488056406]
 
-        assertArrayEquals(expectedMean, mean, OpenCVTestCase.EPS)
-        assertArrayEquals(expectedDev, stddev, OpenCVTestCase.EPS)
+        assertArrayEquals(expectedMean as [NSNumber], mean.array as [NSNumber], OpenCVTestCase.EPS)
+        assertArrayEquals(expectedDev as [NSNumber], stddev.array as [NSNumber], OpenCVTestCase.EPS)
     }
 
     func testMeanStdDevMatMatMatMat() {
@@ -871,16 +871,16 @@ class CoreTest: OpenCVTestCase {
         let mask = gray0.clone()
         submat = mask.submat(rowStart: 0, rowEnd: mask.rows() / 2, colStart: 0, colEnd: mask.cols() / 2)
         submat.setTo(scalar: Scalar(1))
-        var mean = [Double]()
-        var stddev = [Double]()
+        let mean = DoubleVector()
+        let stddev = DoubleVector()
 
-        Core.meanStdDev(src: grayRnd, mean: &mean, stddev: &stddev, mask: mask)
+        Core.meanStdDev(src: grayRnd, mean: mean, stddev: stddev, mask: mask)
 
-        let expectedMean = [33.0]
-        let expectedDev = [0.0]
+        let expectedMean = [33]
+        let expectedDev = [0]
 
-        assertArrayEquals(expectedMean, mean, OpenCVTestCase.EPS)
-        assertArrayEquals(expectedDev, stddev, OpenCVTestCase.EPS)
+        assertArrayEquals(expectedMean as [NSNumber], mean.array as [NSNumber], OpenCVTestCase.EPS)
+        assertArrayEquals(expectedDev as [NSNumber], stddev.array as [NSNumber], OpenCVTestCase.EPS)
     }
 
     func testMerge() throws {
@@ -940,14 +940,14 @@ class CoreTest: OpenCVTestCase {
         rgba0Copy.setTo(scalar: Scalar(10, 20, 30, 40))
         let src = [rgba0Copy]
         let dst = [gray3, gray2, gray1, gray0, getMat(CvType.CV_8UC3, vals: [0, 0, 0])]
-        let fromTo:[Int32] = [
+        let fromTo = IntVector([
                 3, 0,
                 3, 1,
                 2, 2,
                 0, 3,
                 2, 4,
                 1, 5,
-                0, 6]
+                0, 6])
 
         Core.mixChannels(src: src, dst: dst, fromTo: fromTo)
 
@@ -1530,13 +1530,13 @@ class CoreTest: OpenCVTestCase {
 
     func testSplit() throws {
         let m = getMat(CvType.CV_8UC3, vals: [1, 2, 3])
-        var cois = [Mat]()
+        let cois = NSMutableArray()
 
-        Core.split(m: m, mv: &cois)
+        Core.split(m: m, mv: cois)
 
-        try assertMatEqual(gray1, cois[0])
-        try assertMatEqual(gray2, cois[1])
-        try assertMatEqual(gray3, cois[2])
+        try assertMatEqual(gray1, cois[0] as! Mat)
+        try assertMatEqual(gray2, cois[1] as! Mat)
+        try assertMatEqual(gray3, cois[2] as! Mat)
     }
 
     func testSqrt() throws {

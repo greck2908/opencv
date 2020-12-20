@@ -22,6 +22,7 @@
 
 namespace cv { namespace gimpl {
 
+
 // FIXME: GAPI_EXPORTS only because of tests!
 class GAPI_EXPORTS GIsland
 {
@@ -121,8 +122,6 @@ public:
 
     virtual bool canReshape() const = 0;
     virtual void reshape(ade::Graph& g, const GCompileArgs& args) = 0;
-    virtual bool allocatesOutputs() const { return false; }
-    virtual cv::RMat allocate(const cv::GMatDesc&) const { GAPI_Assert(false && "should never be called"); }
 
     // This method is called when the GStreamingCompiled gets a new
     // input source to process. Normally this method is called once
@@ -141,14 +140,6 @@ public:
     // "multi-source streaming", a better design needs to be proposed
     // at that stage.
     virtual void handleNewStream() {}; // do nothing here by default
-
-    // This method is called for every IslandExecutable when
-    // the stream-based execution is stopped.
-    // All processing is guaranteed to be stopped by this moment,
-    // with no pending or running 'run()' processes ran in background.
-    // FIXME: This method is tightly bound to the GStreamingExecutor
-    // now.
-    virtual void handleStopStream() {} // do nothing here by default
 
     virtual ~GIslandExecutable() = default;
 };
@@ -172,10 +163,6 @@ struct GIslandExecutable::IOutput: public GIslandExecutable::IODesc {
     virtual GRunArgP get(int idx) = 0;  // Allocate (wrap) a new data object for output idx
     virtual void post(GRunArgP&&) = 0;  // Release the object back to the framework (mark available)
     virtual void post(EndOfStream&&) = 0; // Post end-of-stream marker back to the framework
-
-    // Assign accumulated metadata to the given output object.
-    // This method can only be called after get() and before post().
-    virtual void meta(const GRunArgP&, const GRunArg::Meta &) = 0;
 };
 
 // GIslandEmitter - a backend-specific thing which feeds data into
@@ -234,19 +221,8 @@ struct IslandsCompiled
     static const char *name() { return "IslandsCompiled"; }
 };
 
-// This flag marks an edge in an GIslandModel as "desynchronized"
-// i.e. it starts a new desynchronized subgraph
-struct DesyncIslEdge
-{
-    static const char *name() { return "DesynchronizedIslandEdge"; }
-
-    // Projection from GModel/DesyncEdge.index
-    int index;
-};
-
 namespace GIslandModel
 {
-
     using Graph = ade::TypedGraph
         < NodeKind
         , FusedIsland
@@ -255,7 +231,6 @@ namespace GIslandModel
         , Emitter
         , Sink
         , IslandsCompiled
-        , DesyncIslEdge
         , ade::passes::TopologicalSortData
         >;
 
@@ -268,7 +243,6 @@ namespace GIslandModel
         , Emitter
         , Sink
         , IslandsCompiled
-        , DesyncIslEdge
         , ade::passes::TopologicalSortData
         >;
 

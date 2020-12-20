@@ -31,7 +31,6 @@ const tuple<string, Size> images[] =
 #ifdef HAVE_PNG
     make_tuple<string, Size>("../cv/shared/pic1.png", Size(400, 300)),
 #endif
-    make_tuple<string, Size>("../highgui/readwrite/ordinary.bmp", Size(480, 272)),
 };
 
 TEST_P(Imgcodecs_Resize, imread_reduce_flags)
@@ -228,12 +227,9 @@ TEST_P(Imgcodecs_Image, read_write_BGR)
     double psnrThreshold = 100;
     if (ext == "jpg")
         psnrThreshold = 32;
-#if defined(HAVE_JASPER)
+#ifdef HAVE_JASPER
     if (ext == "jp2")
         psnrThreshold = 95;
-#elif defined(HAVE_OPENJPEG)
-    if (ext == "jp2")
-        psnrThreshold = 35;
 #endif
 
     Mat image = generateTestImageBGR();
@@ -257,12 +253,9 @@ TEST_P(Imgcodecs_Image, read_write_GRAYSCALE)
     double psnrThreshold = 100;
     if (ext == "jpg")
         psnrThreshold = 40;
-#if defined(HAVE_JASPER)
+#ifdef HAVE_JASPER
     if (ext == "jp2")
         psnrThreshold = 70;
-#elif defined(HAVE_OPENJPEG)
-    if (ext == "jp2")
-        psnrThreshold = 35;
 #endif
 
     Mat image = generateTestImageGrayscale();

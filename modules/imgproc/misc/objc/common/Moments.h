@@ -7,16 +7,14 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-CV_EXPORTS @interface Moments : NSObject
+@interface Moments : NSObject
 
 @property double m00;
 @property double m10;

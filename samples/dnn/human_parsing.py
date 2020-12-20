@@ -46,7 +46,7 @@ import cv2 as cv
 
 
 backends = (cv.dnn.DNN_BACKEND_DEFAULT, cv.dnn.DNN_BACKEND_INFERENCE_ENGINE, cv.dnn.DNN_BACKEND_OPENCV)
-targets = (cv.dnn.DNN_TARGET_CPU, cv.dnn.DNN_TARGET_OPENCL, cv.dnn.DNN_TARGET_OPENCL_FP16, cv.dnn.DNN_TARGET_MYRIAD, cv.dnn.DNN_TARGET_HDDL)
+targets = (cv.dnn.DNN_TARGET_CPU, cv.dnn.DNN_TARGET_OPENCL, cv.dnn.DNN_TARGET_OPENCL_FP16, cv.dnn.DNN_TARGET_MYRIAD)
 
 
 def preprocess(image):
@@ -168,8 +168,7 @@ if __name__ == '__main__':
                              '%d: CPU target (by default), '
                              '%d: OpenCL, '
                              '%d: OpenCL fp16 (half-float precision), '
-                             '%d: NCS2 VPU, '
-                             '%d: HDDL VPU' % targets)
+                             '%d: VPU' % targets)
     args, _ = parser.parse_known_args()
 
     if not os.path.isfile(args.model):

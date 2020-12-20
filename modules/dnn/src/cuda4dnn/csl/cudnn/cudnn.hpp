@@ -5,6 +5,7 @@
 #ifndef OPENCV_DNN_CUDA4DNN_CSL_CUDNN_CUDNN_HPP
 #define OPENCV_DNN_CUDA4DNN_CSL_CUDNN_CUDNN_HPP
 
+#include "../fp16.hpp"
 #include "../pointer.hpp"
 
 #include <cudnn.h>

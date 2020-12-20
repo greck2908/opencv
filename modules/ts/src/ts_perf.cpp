@@ -2168,7 +2168,7 @@ struct KeypointComparator
         return cmp(pts_[idx1], pts_[idx2]);
     }
 private:
-    KeypointComparator& operator=(const KeypointComparator&) = delete;
+    const KeypointComparator& operator=(const KeypointComparator&); // quiet MSVC
 };
 }//namespace
 

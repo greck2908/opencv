@@ -1,15 +1,8 @@
 Feature Detection {#tutorial_feature_detection}
 =================
 
-@tableofcontents
-
 @prev_tutorial{tutorial_corner_subpixels}
 @next_tutorial{tutorial_feature_description}
-
-|    |    |
-| -: | :- |
-| Original author | Ana Huamán |
-| Compatibility | OpenCV >= 3.0 |
 
 Goal
 ----

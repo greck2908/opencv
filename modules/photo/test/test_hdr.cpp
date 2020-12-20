@@ -227,11 +227,7 @@ TEST(Photo_CalibrateDebevec, regression)
     diff = diff.mul(1.0f / response);
     double max;
     minMaxLoc(diff, NULL, &max);
-#if defined(__arm__) || defined(__aarch64__)
-    ASSERT_LT(max, 0.131);
-#else
-    ASSERT_LT(max, 0.1);
-#endif
+    ASSERT_FALSE(max > 0.1);
 }
 
 TEST(Photo_CalibrateRobertson, regression)

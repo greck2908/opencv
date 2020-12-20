@@ -5,14 +5,12 @@
 // Copyright (C) 2019 Intel Corporation
 
 
+#ifdef HAVE_PLAIDML
+
 #include "precomp.hpp"
 
 #include <opencv2/gapi/core.hpp>
-
 #include <opencv2/gapi/plaidml/core.hpp>
-
-#ifdef HAVE_PLAIDML
-
 #include <opencv2/gapi/plaidml/gplaidmlkernel.hpp>
 
 #include <plaidml2/edsl/edsl.h>
@@ -53,12 +51,4 @@ cv::gapi::GKernelPackage cv::gapi::core::plaidml::kernels()
     return pkg;
 }
 
-#else // HAVE_PLAIDML
-
-cv::gapi::GKernelPackage cv::gapi::core::plaidml::kernels()
-{
-    // Still provide this symbol to avoid linking issues
-    util::throw_error(std::runtime_error("G-API has been compiled without PlaidML2 support"));
-}
-
-#endif // HAVE_PLAIDML
+#endif // HACE_PLAIDML

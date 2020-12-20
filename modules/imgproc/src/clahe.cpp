@@ -162,9 +162,7 @@ namespace
 
             // calc histogram
 
-            cv::AutoBuffer<int> _tileHist(histSize);
-            int* tileHist = _tileHist.data();
-            std::fill(tileHist, tileHist + histSize, 0);
+            int tileHist[histSize] = {0, };
 
             int height = tileROI.height;
             const size_t sstep = src_.step / sizeof(T);

@@ -4,10 +4,8 @@
 #pragma once
 
 #ifdef __cplusplus
-//#import "opencv.hpp"
+#import "opencv.hpp"
 $additionalImports
-#else
-#define CV_EXPORTS
 #endif
 
 #import <Foundation/Foundation.h>
@@ -20,7 +18,7 @@ $enumDeclarations
 NS_ASSUME_NONNULL_BEGIN
 
 $docs
-CV_EXPORTS @interface $objcName : $base
+@interface $objcName : $base
 
 $nativePointerHandling
 

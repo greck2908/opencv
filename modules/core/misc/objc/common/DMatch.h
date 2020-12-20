@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 #import <Foundation/Foundation.h>
@@ -20,7 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 * Structure for matching: query descriptor index, train descriptor index, train
 * image index and distance between descriptors.
 */
-CV_EXPORTS @interface DMatch : NSObject
+@interface DMatch : NSObject
 
 /**
  * Query descriptor index.

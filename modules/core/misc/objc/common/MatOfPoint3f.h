@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Mat representation of an array of Point3f objects
 */
-CV_EXPORTS @interface MatOfPoint3f : Mat
+@interface MatOfPoint3f : Mat
 
 #pragma mark - Constructors
 

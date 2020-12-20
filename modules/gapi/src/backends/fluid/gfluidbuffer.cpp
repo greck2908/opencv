@@ -694,8 +694,6 @@ fluid::View::View(std::unique_ptr<Priv>&& p)
     : m_priv(std::move(p)), m_cache(&m_priv->cache())
 { /* nothing */ }
 
-
-fluid::View::View() = default;
 fluid::View::View(View&&) = default;
 fluid::View& fluid::View::operator=(View&&) = default;
 fluid::View::~View() = default;

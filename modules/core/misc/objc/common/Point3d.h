@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 #import <Foundation/Foundation.h>
@@ -21,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Represents a three dimensional point the coordinate values of which are of type `double`
 */
-CV_EXPORTS @interface Point3d : NSObject
+@interface Point3d : NSObject
 
 # pragma mark - Properties
 
@@ -38,11 +36,6 @@ CV_EXPORTS @interface Point3d : NSObject
 - (instancetype)initWithX:(double)x y:(double)y z:(double)z;
 - (instancetype)initWithPoint:(Point2d*)point;
 - (instancetype)initWithVals:(NSArray<NSNumber*>*)vals;
-
-#ifdef __cplusplus
-+ (instancetype)fromNative:(cv::Point3d&)point;
-- (void)update:(cv::Point3d&)point;
-#endif
 
 # pragma mark - Methods
 

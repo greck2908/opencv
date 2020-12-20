@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Mat representation of an array of bytes
 */
-CV_EXPORTS @interface MatOfByte : Mat
+@interface MatOfByte : Mat
 
 #pragma mark - Constructors
 

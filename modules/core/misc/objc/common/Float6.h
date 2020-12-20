@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 #import <Foundation/Foundation.h>
@@ -21,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Simple wrapper for a vector of six `float`
 */
-CV_EXPORTS @interface Float6 : NSObject
+@interface Float6 : NSObject
 
 #pragma mark - Properties
 

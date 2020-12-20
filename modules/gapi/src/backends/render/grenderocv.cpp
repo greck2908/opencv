@@ -1,21 +1,16 @@
 #include <opencv2/imgproc.hpp>
 
 #include "api/render_ocv.hpp"
+#include "backends/render/grenderocv.hpp"
 
 #include <opencv2/gapi/cpu/gcpukernel.hpp>
-#include <opencv2/gapi/fluid/core.hpp>
 
-struct RenderOCVState
-{
-    std::shared_ptr<cv::gapi::wip::draw::FTTextRender> ftpr;
-};
-
-GAPI_OCV_KERNEL_ST(RenderBGROCVImpl, cv::gapi::wip::draw::GRenderBGR, RenderOCVState)
+GAPI_RENDER_OCV_KERNEL(RenderBGROCVImpl, cv::gapi::wip::draw::GRenderBGR)
 {
     static void run(const cv::Mat& in,
                     const cv::gapi::wip::draw::Prims& prims,
-                    cv::Mat& out,
-                    RenderOCVState& state)
+                    cv::gapi::wip::draw::FTTextRender* ftpr,
+                    cv::Mat& out)
     {
         // NB: If in and out cv::Mats are the same object
         // we can avoid copy and render on out cv::Mat
@@ -24,33 +19,18 @@ GAPI_OCV_KERNEL_ST(RenderBGROCVImpl, cv::gapi::wip::draw::GRenderBGR, RenderOCVS
             in.copyTo(out);
         }
 
-        cv::gapi::wip::draw::drawPrimitivesOCVBGR(out, prims, state.ftpr);
-    }
-
-    static void setup(const cv::GMatDesc& /* in */,
-                      const cv::GArrayDesc& /* prims */,
-                      std::shared_ptr<RenderOCVState>& state,
-                      const cv::GCompileArgs& args)
-    {
-        using namespace cv::gapi::wip::draw;
-        auto opt_freetype_font = cv::gapi::getCompileArg<freetype_font>(args);
-        state = std::make_shared<RenderOCVState>();
-
-        if (opt_freetype_font.has_value())
-        {
-            state->ftpr = std::make_shared<FTTextRender>(opt_freetype_font->path);
-        }
+        cv::gapi::wip::draw::drawPrimitivesOCVBGR(out, prims, ftpr);
     }
 };
 
-GAPI_OCV_KERNEL_ST(RenderNV12OCVImpl, cv::gapi::wip::draw::GRenderNV12, RenderOCVState)
+GAPI_RENDER_OCV_KERNEL(RenderNV12OCVImpl, cv::gapi::wip::draw::GRenderNV12)
 {
     static void run(const cv::Mat& in_y,
                     const cv::Mat& in_uv,
                     const cv::gapi::wip::draw::Prims& prims,
+                    cv::gapi::wip::draw::FTTextRender* ftpr,
                     cv::Mat& out_y,
-                    cv::Mat& out_uv,
-                    RenderOCVState& state)
+                    cv::Mat& out_uv)
     {
         // NB: If in and out cv::Mats are the same object
         // we can avoid copy and render on out cv::Mat
@@ -87,7 +67,7 @@ GAPI_OCV_KERNEL_ST(RenderNV12OCVImpl, cv::gapi::wip::draw::GRenderNV12, RenderOC
         cv::resize(in_uv, upsample_uv, in_uv.size() * 2, cv::INTER_LINEAR);
         cv::merge(std::vector<cv::Mat>{in_y, upsample_uv}, yuv);
 
-        cv::gapi::wip::draw::drawPrimitivesOCVYUV(yuv, prims, state.ftpr);
+        cv::gapi::wip::draw::drawPrimitivesOCVYUV(yuv, prims, ftpr);
 
         // YUV -> NV12
         cv::Mat out_u, out_v, uv_plane;
@@ -95,22 +75,6 @@ GAPI_OCV_KERNEL_ST(RenderNV12OCVImpl, cv::gapi::wip::draw::GRenderNV12, RenderOC
         cv::split(yuv, chs);
         cv::merge(std::vector<cv::Mat>{chs[1], chs[2]}, uv_plane);
         cv::resize(uv_plane, out_uv, uv_plane.size() / 2, cv::INTER_LINEAR);
-    }
-
-    static void setup(const cv::GMatDesc&   /* in_y  */,
-                      const cv::GMatDesc&   /* in_uv */,
-                      const cv::GArrayDesc& /* prims */,
-                      std::shared_ptr<RenderOCVState>& state,
-                      const cv::GCompileArgs& args)
-    {
-        using namespace cv::gapi::wip::draw;
-        auto has_freetype_font = cv::gapi::getCompileArg<freetype_font>(args);
-        state = std::make_shared<RenderOCVState>();
-
-        if (has_freetype_font)
-        {
-            state->ftpr = std::make_shared<FTTextRender>(has_freetype_font->path);
-        }
     }
 };
 

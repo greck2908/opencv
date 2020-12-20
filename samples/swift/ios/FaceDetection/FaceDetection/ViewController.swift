@@ -62,14 +62,12 @@ class ViewController: UIViewController, CvVideoCameraDelegate2 {
             }
         }
 
-        var faces = [Rect]()
+        let faces = NSMutableArray()
 
-        swiftDetector.detectMultiScale(image: gray, objects: &faces, scaleFactor: 1.1, minNeighbors: Int32(2), flags: Int32(2), minSize: Size(width: absoluteFaceSize, height: absoluteFaceSize), maxSize: Size())
-        //let facesArray = NSMutableArray()
-        //nativeDetector!.detect(gray, faces: facesArray)
-        //faces.append(contentsOf: facesArray)
+        swiftDetector.detectMultiScale(image: gray, objects: faces, scaleFactor: 1.1, minNeighbors: Int32(2), flags: Int32(2), minSize: Size(width: absoluteFaceSize, height: absoluteFaceSize), maxSize: Size())
+        //nativeDetector!.detect(gray, faces: faces)
 
-        for face in faces {
+        for face in faces as! [Rect] {
             if orientation == .landscapeLeft {
                 face.rotateClockwise(parentHeight: gray.rows())
             } else if orientation == .landscapeRight {

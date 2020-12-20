@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 @class Point2f;
@@ -23,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Represents a rotated rectangle on a plane
 */
-CV_EXPORTS @interface RotatedRect : NSObject
+@interface RotatedRect : NSObject
 
 #pragma mark - Properties
 

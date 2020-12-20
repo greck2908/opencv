@@ -119,7 +119,8 @@ void concurrent_bounded_queue<T>::set_capacity(std::size_t capacity) {
 // Clear the queue. Similar to the TBB version, this method is not
 // thread-safe.
 template<typename T>
-void concurrent_bounded_queue<T>::clear() {
+void concurrent_bounded_queue<T>::clear()
+{
     m_data = std::queue<T>{};
 }
 

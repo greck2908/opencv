@@ -12,8 +12,6 @@
 #include <opencv2/gapi/gscalar.hpp>
 #include <opencv2/gapi/operators.hpp>
 
-namespace cv
-{
 cv::GMat operator+(const cv::GMat& lhs, const cv::GMat& rhs)
 {
     return cv::gapi::add(lhs, rhs);
@@ -213,4 +211,3 @@ cv::GMat operator!=(const cv::GScalar& lhs, const cv::GMat& rhs)
 {
     return cv::gapi::cmpNE(rhs, lhs);
 }
-} // cv

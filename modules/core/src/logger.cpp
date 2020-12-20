@@ -94,7 +94,8 @@ LogLevel GlobalLoggingInitStruct::m_defaultUnconfiguredGlobalLevel = GlobalLoggi
 //
 static GlobalLoggingInitStruct& getGlobalLoggingInitStruct()
 {
-    CV_SINGLETON_LAZY_INIT_REF(GlobalLoggingInitStruct, new GlobalLoggingInitStruct());
+    static GlobalLoggingInitStruct globalLoggingInitInstance;
+    return globalLoggingInitInstance;
 }
 
 // To ensure that the combined struct defined above is initialized even
@@ -107,7 +108,6 @@ struct GlobalLoggingInitCall
     GlobalLoggingInitCall()
     {
         getGlobalLoggingInitStruct();
-        (void)getGlobalLogTag();  // complete initialization of logger structures
     }
 };
 

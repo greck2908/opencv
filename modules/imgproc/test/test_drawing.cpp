@@ -535,8 +535,7 @@ protected:
             img->copyTo(sub);
             shift += img->size().height + 1;
         }
-        if (cvtest::debugLevel > 0)
-            imwrite("all_fonts.png", result);
+        //imwrite("/tmp/all_fonts.png", result);
     }
 };
 

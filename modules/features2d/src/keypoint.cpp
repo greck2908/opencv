@@ -44,9 +44,9 @@
 namespace cv
 {
 
-struct KeypointResponseGreaterThanOrEqualToThreshold
+struct KeypointResponseGreaterThanThreshold
 {
-    KeypointResponseGreaterThanOrEqualToThreshold(float _value) :
+    KeypointResponseGreaterThanThreshold(float _value) :
     value(_value)
     {
     }
@@ -83,7 +83,7 @@ void KeyPointsFilter::retainBest(std::vector<KeyPoint>& keypoints, int n_points)
         //use std::partition to grab all of the keypoints with the boundary response.
         std::vector<KeyPoint>::const_iterator new_end =
         std::partition(keypoints.begin() + n_points, keypoints.end(),
-                       KeypointResponseGreaterThanOrEqualToThreshold(ambiguous_response));
+                       KeypointResponseGreaterThanThreshold(ambiguous_response));
         //resize the keypoints, given this new end point. nth_element and partition reordered the points inplace
         keypoints.resize(new_end - keypoints.begin());
     }
@@ -151,7 +151,7 @@ public:
 
 private:
     const Mat mask;
-    MaskPredicate& operator=(const MaskPredicate&) = delete;
+    MaskPredicate& operator=(const MaskPredicate&);
 };
 
 void KeyPointsFilter::runByPixelsMask( std::vector<KeyPoint>& keypoints, const Mat& mask )

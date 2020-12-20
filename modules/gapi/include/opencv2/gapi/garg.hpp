@@ -2,21 +2,18 @@
 // It is subject to the license terms in the LICENSE file found in the top-level directory
 // of this distribution and at http://opencv.org/license.html.
 //
-// Copyright (C) 2018-2020 Intel Corporation
+// Copyright (C) 2018 Intel Corporation
 
 
 #ifndef OPENCV_GAPI_GARG_HPP
 #define OPENCV_GAPI_GARG_HPP
 
 #include <vector>
-#include <unordered_map>
 #include <type_traits>
 
 #include <opencv2/gapi/opencv_includes.hpp>
 #include <opencv2/gapi/own/mat.hpp>
-#include <opencv2/gapi/media.hpp>
 
-#include <opencv2/gapi/util/util.hpp>
 #include <opencv2/gapi/util/any.hpp>
 #include <opencv2/gapi/util/variant.hpp>
 
@@ -24,11 +21,9 @@
 #include <opencv2/gapi/gscalar.hpp>
 #include <opencv2/gapi/garray.hpp>
 #include <opencv2/gapi/gopaque.hpp>
-#include <opencv2/gapi/gframe.hpp>
 #include <opencv2/gapi/gtype_traits.hpp>
 #include <opencv2/gapi/gmetaarg.hpp>
 #include <opencv2/gapi/streaming/source.hpp>
-#include <opencv2/gapi/rmat.hpp>
 
 namespace cv {
 
@@ -51,7 +46,6 @@ public:
     template<typename T, typename std::enable_if<!detail::is_garg<T>::value, int>::type = 0>
     explicit GArg(const T &t)
         : kind(detail::GTypeTraits<T>::kind)
-        , opaque_kind(detail::GOpaqueTraits<T>::kind)
         , value(detail::wrap_gapi_helper<T>::wrap(t))
     {
     }
@@ -59,7 +53,6 @@ public:
     template<typename T, typename std::enable_if<!detail::is_garg<T>::value, int>::type = 0>
     explicit GArg(T &&t)
         : kind(detail::GTypeTraits<typename std::decay<T>::type>::kind)
-        , opaque_kind(detail::GOpaqueTraits<typename std::decay<T>::type>::kind)
         , value(detail::wrap_gapi_helper<T>::wrap(t))
     {
     }
@@ -85,7 +78,6 @@ public:
     }
 
     detail::ArgKind kind = detail::ArgKind::OPAQUE_VAL;
-    detail::OpaqueKind opaque_kind = detail::OpaqueKind::CV_UNKNOWN;
 
 protected:
     util::any value;
@@ -95,104 +87,28 @@ using GArgs = std::vector<GArg>;
 
 // FIXME: Express as M<GProtoArg...>::type
 // FIXME: Move to a separate file!
-using GRunArgBase  = util::variant<
+using GRunArg  = util::variant<
 #if !defined(GAPI_STANDALONE)
     cv::UMat,
 #endif // !defined(GAPI_STANDALONE)
-    cv::RMat,
     cv::gapi::wip::IStreamSource::Ptr,
     cv::Mat,
     cv::Scalar,
     cv::detail::VectorRef,
-    cv::detail::OpaqueRef,
-    cv::MediaFrame
+    cv::detail::OpaqueRef
     >;
-
-namespace detail {
-template<typename,typename>
-struct in_variant;
-
-template<typename T, typename... Types>
-struct in_variant<T, util::variant<Types...> >
-    : std::integral_constant<bool, cv::detail::contains<T, Types...>::value > {
-};
-} // namespace detail
-
-struct GAPI_EXPORTS GRunArg: public GRunArgBase
-{
-    // Metadata information here
-    using Meta = std::unordered_map<std::string, util::any>;
-    Meta meta;
-
-    // Mimic the old GRunArg semantics here, old of the times when
-    // GRunArg was an alias to variant<>
-    GRunArg();
-    GRunArg(const cv::GRunArg &arg);
-    GRunArg(cv::GRunArg &&arg);
-
-    GRunArg& operator= (const GRunArg &arg);
-    GRunArg& operator= (GRunArg &&arg);
-
-    template <typename T>
-    GRunArg(const T &t,
-            const Meta &m = Meta{},
-            typename std::enable_if< detail::in_variant<T, GRunArgBase>::value, int>::type = 0)
-        : GRunArgBase(t)
-        , meta(m)
-    {
-    }
-    template <typename T>
-    GRunArg(T &&t,
-            const Meta &m = Meta{},
-            typename std::enable_if< detail::in_variant<T, GRunArgBase>::value, int>::type = 0)
-        : GRunArgBase(std::move(t))
-        , meta(m)
-    {
-    }
-    template <typename T> auto operator= (const T &t)
-        -> typename std::enable_if< detail::in_variant<T, GRunArgBase>::value, cv::GRunArg>::type&
-    {
-        GRunArgBase::operator=(t);
-        return *this;
-    }
-    template <typename T> auto operator= (T&& t)
-        -> typename std::enable_if< detail::in_variant<T, GRunArgBase>::value, cv::GRunArg>::type&
-    {
-        GRunArgBase::operator=(std::move(t));
-        return *this;
-    }
-};
 using GRunArgs = std::vector<GRunArg>;
-
-// TODO: Think about the addition operator
-/**
- * @brief This operator allows to complement the input vector at runtime.
- *
- * It's an ordinary overload of addition assignment operator.
- *
- * Example of usage:
- * @snippet dynamic_graph.cpp GRunArgs usage
- *
- */
-inline GRunArgs& operator += (GRunArgs &lhs, const GRunArgs &rhs)
-{
-    lhs.reserve(lhs.size() + rhs.size());
-    lhs.insert(lhs.end(), rhs.begin(), rhs.end());
-    return lhs;
-}
 
 namespace gapi
 {
 namespace wip
 {
 /**
- * @brief This aggregate type represents all types which G-API can
- * handle (via variant).
+ * @brief This aggregate type represents all types which G-API can handle (via variant).
  *
- * It only exists to overcome C++ language limitations (where a
- * `using`-defined class can't be forward-declared).
+ * It only exists to overcome C++ language limitations (where a `using`-defined class can't be forward-declared).
  */
-struct GAPI_EXPORTS Data: public GRunArg
+struct Data: public GRunArg
 {
     using GRunArg::GRunArg;
     template <typename T>
@@ -208,36 +124,11 @@ using GRunArgP = util::variant<
     cv::UMat*,
 #endif // !defined(GAPI_STANDALONE)
     cv::Mat*,
-    cv::RMat*,
     cv::Scalar*,
-    cv::MediaFrame*,
     cv::detail::VectorRef,
     cv::detail::OpaqueRef
     >;
 using GRunArgsP = std::vector<GRunArgP>;
-
-// TODO: Think about the addition operator
-/**
- * @brief This operator allows to complement the output vector at runtime.
- *
- * It's an ordinary overload of addition assignment operator.
- *
- * Example of usage:
- * @snippet dynamic_graph.cpp GRunArgsP usage
- *
- */
-inline GRunArgsP& operator += (GRunArgsP &lhs, const GRunArgsP &rhs)
-{
-    lhs.reserve(lhs.size() + rhs.size());
-    lhs.insert(lhs.end(), rhs.begin(), rhs.end());
-    return lhs;
-}
-
-namespace gapi
-{
-    GAPI_EXPORTS cv::GRunArgsP bind(cv::GRunArgs &results);
-    GAPI_EXPORTS cv::GRunArg   bind(cv::GRunArgP &out);     // FIXME: think more about it
-}
 
 template<typename... Ts> inline GRunArgs gin(const Ts&... args)
 {

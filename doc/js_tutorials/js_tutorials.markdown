@@ -26,7 +26,3 @@ OpenCV.js Tutorials {#tutorial_js_root}
 
     In this section you
     will object detection techniques like face detection etc.
-
--   @subpage tutorial_js_table_of_contents_dnn
-
-    These tutorials show how to use dnn module in JavaScript

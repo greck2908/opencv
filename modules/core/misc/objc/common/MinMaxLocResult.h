@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 #import <Foundation/Foundation.h>
@@ -21,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Result of operation to determine global minimum and maximum of an array
 */
-CV_EXPORTS @interface MinMaxLocResult : NSObject
+@interface MinMaxLocResult : NSObject
 
 #pragma mark - Properties
 

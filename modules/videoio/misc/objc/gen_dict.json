@@ -12,8 +12,6 @@
         }
     },
     "func_arg_fix" : {
-        "VideoCapture" : {
-            "(BOOL)open:(int)index apiPreference:(int)apiPreference" : { "open" : {"name" : "openWithIndex"} }
-        }
+        "(BOOL)open:(int)index apiPreference:(int)apiPreference" : { "open" : {"name" : "openWithIndex"} }
     }
 }

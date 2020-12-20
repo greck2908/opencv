@@ -34,7 +34,6 @@ public class MorphologyDemo1 {
     private JFrame frame;
     private JLabel imgLabel;
 
-    //! [constructor]
     public MorphologyDemo1(String[] args) {
         String imagePath = args.length > 0 ? args[0] : "../data/LinuxLogo.jpg";
         matImgSrc = Imgcodecs.imread(imagePath);
@@ -55,9 +54,7 @@ public class MorphologyDemo1 {
         frame.pack();
         frame.setVisible(true);
     }
-    //! [constructor]
 
-    //! [components]
     private void addComponentsToPane(Container pane, Image img) {
         if (!(pane.getLayout() instanceof BorderLayout)) {
             pane.add(new JLabel("Container doesn't use BorderLayout!"));
@@ -117,31 +114,21 @@ public class MorphologyDemo1 {
         imgLabel = new JLabel(new ImageIcon(img));
         pane.add(imgLabel, BorderLayout.CENTER);
     }
-    //! [components]
 
-    //! [update]
     private void update() {
-        //! [kernel]
         Mat element = Imgproc.getStructuringElement(elementType, new Size(2 * kernelSize + 1, 2 * kernelSize + 1),
                 new Point(kernelSize, kernelSize));
-        //! [kernel]
 
         if (doErosion) {
-            //! [erosion]
             Imgproc.erode(matImgSrc, matImgDst, element);
-            //! [erosion]
         } else {
-            //! [dilation]
             Imgproc.dilate(matImgSrc, matImgDst, element);
-            //! [dilation]
         }
         Image img = HighGui.toBufferedImage(matImgDst);
         imgLabel.setIcon(new ImageIcon(img));
         frame.repaint();
     }
-    //! [update]
 
-    //! [main]
     public static void main(String[] args) {
         // Load the native OpenCV library
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -155,5 +142,4 @@ public class MorphologyDemo1 {
             }
         });
     }
-    //! [main]
 }

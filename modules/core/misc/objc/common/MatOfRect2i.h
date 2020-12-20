@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 * Mat representation of an array of Rect objects
 */
 NS_SWIFT_NAME(MatOfRect)
-CV_EXPORTS @interface MatOfRect2i : Mat
+@interface MatOfRect2i : Mat
 
 #pragma mark - Constructors
 

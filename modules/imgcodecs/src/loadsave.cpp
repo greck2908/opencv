@@ -197,19 +197,7 @@ struct ImageCodecInitializer
     std::vector<ImageEncoder> encoders;
 };
 
-static
-ImageCodecInitializer& getCodecs()
-{
-#ifdef CV_CXX11
-    static ImageCodecInitializer g_codecs;
-    return g_codecs;
-#else
-    // C++98 doesn't guarantee correctness of multi-threaded initialization of static global variables
-    // (memory leak here is not critical, use C++11 to avoid that)
-    static ImageCodecInitializer* g_codecs = new ImageCodecInitializer();
-    return *g_codecs;
-#endif
-}
+static ImageCodecInitializer codecs;
 
 /**
  * Find the decoders
@@ -223,7 +211,6 @@ static ImageDecoder findDecoder( const String& filename ) {
     size_t i, maxlen = 0;
 
     /// iterate through list of registered codecs
-    ImageCodecInitializer& codecs = getCodecs();
     for( i = 0; i < codecs.decoders.size(); i++ )
     {
         size_t len = codecs.decoders[i]->signatureLength();
@@ -261,7 +248,6 @@ static ImageDecoder findDecoder( const Mat& buf )
     if( buf.rows*buf.cols < 1 || !buf.isContinuous() )
         return ImageDecoder();
 
-    ImageCodecInitializer& codecs = getCodecs();
     for( i = 0; i < codecs.decoders.size(); i++ )
     {
         size_t len = codecs.decoders[i]->signatureLength();
@@ -294,7 +280,6 @@ static ImageEncoder findEncoder( const String& _ext )
     for( ext++; len < 128 && isalnum(ext[len]); len++ )
         ;
 
-    ImageCodecInitializer& codecs = getCodecs();
     for( size_t i = 0; i < codecs.encoders.size(); i++ )
     {
         String description = codecs.encoders[i]->getDescription();

@@ -403,8 +403,8 @@ public:
 
     /**
      * @brief Simplified writing API to use with bindings.
-     * @param name Name of the written object. When writing to sequences (a.k.a. "arrays"), pass an empty string.
-     * @param val Value of the written object.
+     * @param name Name of the written object
+     * @param val Value of the written object
      */
     CV_WRAP void write(const String& name, int val);
     /// @overload
@@ -437,10 +437,9 @@ public:
     CV_WRAP void writeComment(const String& comment, bool append = false);
 
     /** @brief Starts to write a nested structure (sequence or a mapping).
-    @param name name of the structure. When writing to sequences (a.k.a. "arrays"), pass an empty string.
+    @param name name of the structure (if it's a member of parent mapping, otherwise it should be empty
     @param flags type of the structure (FileNode::MAP or FileNode::SEQ (both with optional FileNode::FLOW)).
-    @param typeName optional name of the type you store. The effect of setting this depends on the storage format.
-    I.e. if the format has a specification for storing type information, this parameter is used.
+    @param typeName usually an empty string
     */
     CV_WRAP void startWriteStruct(const String& name, int flags, const String& typeName=String());
 
@@ -511,8 +510,6 @@ public:
      @param fs Pointer to the file storage structure.
      @param blockIdx Index of the memory block where the file node is stored
      @param ofs Offset in bytes from the beginning of the serialized storage
-
-     @deprecated
      */
     FileNode(const FileStorage* fs, size_t blockIdx, size_t ofs);
 
@@ -617,9 +614,7 @@ public:
     CV_WRAP Mat mat() const;
 
     //protected:
-    FileNode(FileStorage::Impl* fs, size_t blockIdx, size_t ofs);
-
-    FileStorage::Impl* fs;
+    const FileStorage* fs;
     size_t blockIdx;
     size_t ofs;
 };
@@ -684,7 +679,7 @@ public:
     bool equalTo(const FileNodeIterator& it) const;
 
 protected:
-    FileStorage::Impl* fs;
+    const FileStorage* fs;
     size_t blockIdx;
     size_t ofs;
     size_t blockSize;

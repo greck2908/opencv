@@ -125,13 +125,13 @@ class ImgprocTest: OpenCVTestCase {
     func testApproxPolyDP() {
         let curve = [Point2f(x: 1, y: 3), Point2f(x: 2, y: 4), Point2f(x: 3, y: 5), Point2f(x: 4, y: 4), Point2f(x: 5, y: 3)]
 
-        var approxCurve = [Point2f]()
+        let approxCurve = NSMutableArray()
 
-        Imgproc.approxPolyDP(curve: curve, approxCurve: &approxCurve, epsilon: OpenCVTestCase.EPS, closed: true)
+        Imgproc.approxPolyDP(curve: curve, approxCurve: approxCurve, epsilon: OpenCVTestCase.EPS, closed: true)
 
         let approxCurveGold = [Point2f(x: 1, y: 3), Point2f(x: 3, y: 5), Point2f(x: 5, y: 3)]
 
-        XCTAssert(approxCurve == approxCurveGold)
+        XCTAssert(approxCurve as! [Point2f] == approxCurveGold)
     }
 
     func testArcLength() {
@@ -201,9 +201,9 @@ class ImgprocTest: OpenCVTestCase {
 
     func testCalcBackProject() {
         let images = [grayChess]
-        let channels:[Int32] = [0]
-        let histSize:[Int32] = [10]
-        let ranges:[Float] = [0, 256]
+        let channels = IntVector([0])
+        let histSize = IntVector([10])
+        let ranges = FloatVector([0, 256])
 
         let hist = Mat()
         Imgproc.calcHist(images: images, channels: channels, mask: Mat(), hist: hist, histSize: histSize, ranges: ranges)
@@ -218,9 +218,9 @@ class ImgprocTest: OpenCVTestCase {
 
     func testCalcHistListOfMatListOfIntegerMatMatListOfIntegerListOfFloat() throws {
         let images = [gray128]
-        let channels:[Int32] = [0]
-        let histSize:[Int32] = [10]
-        let ranges:[Float] = [0, 256]
+        let channels = IntVector([0])
+        let histSize = IntVector([10])
+        let ranges = FloatVector([0, 256])
         let hist = Mat()
 
         Imgproc.calcHist(images: images, channels: channels, mask: Mat(), hist: hist, histSize: histSize, ranges: ranges)
@@ -232,9 +232,9 @@ class ImgprocTest: OpenCVTestCase {
 
     func testCalcHistListOfMatListOfIntegerMatMatListOfIntegerListOfFloat2D() throws {
         let images = [gray255, gray128]
-        let channels:[Int32] = [0, 1]
-        let histSize:[Int32] = [10, 10]
-        let ranges:[Float] = [0, 256, 0, 256]
+        let channels = IntVector([0, 1])
+        let histSize = IntVector([10, 10])
+        let ranges = FloatVector([0, 256, 0, 256])
         let hist = Mat()
 
         Imgproc.calcHist(images: images, channels: channels, mask: Mat(), hist: hist, histSize: histSize, ranges: ranges)
@@ -250,11 +250,11 @@ class ImgprocTest: OpenCVTestCase {
         let hist3D = Mat()
         let histList = [Mat(), Mat(), Mat()]
 
-        let histSize: [Int32] = [10]
-        let ranges: [Float] = [0, 256]
+        let histSize = IntVector([10])
+        let ranges = FloatVector([0, 256])
 
         for i:Int in 0..<Int(rgbLena.channels()) {
-            Imgproc.calcHist(images: images, channels: [Int32(i)], mask: Mat(), hist: histList[i], histSize: histSize, ranges: ranges)
+            Imgproc.calcHist(images: images, channels: IntVector([Int32(i)]), mask: Mat(), hist: histList[i], histSize: histSize, ranges: ranges)
 
             XCTAssertEqual(10, histList[i].checkVector(elemChannels: 1))
         }
@@ -282,9 +282,9 @@ class ImgprocTest: OpenCVTestCase {
 
     func testCalcHistListOfMatListOfIntegerMatMatListOfIntegerListOfFloatBoolean() throws {
         let images = [gray255, gray128]
-        let channels:[Int32] = [0, 1]
-        let histSize:[Int32] = [10, 10]
-        let ranges:[Float] = [0, 256, 0, 256]
+        let channels = IntVector([0, 1])
+        let histSize = IntVector([10, 10])
+        let ranges = FloatVector([0, 256, 0, 256])
         let hist = Mat()
 
         Imgproc.calcHist(images: images, channels: channels, mask: Mat(), hist: hist, histSize: histSize, ranges: ranges, accumulate: true)
@@ -372,11 +372,12 @@ class ImgprocTest: OpenCVTestCase {
                     Point(x: 20, y: 10),
                     Point(x: 30, y: 10)]
 
-        var hull = [Int32]()
+        let hull = IntVector()
 
-        Imgproc.convexHull(points: points, hull: &hull)
+        Imgproc.convexHull(points: points, hull: hull)
 
-        XCTAssert([0, 1, 2, 3] == hull)
+        let expHull = IntVector([0, 1, 2, 3])
+        XCTAssert(expHull.array == hull.array)
     }
 
     func testConvexHullMatMatBooleanBoolean() {
@@ -387,11 +388,12 @@ class ImgprocTest: OpenCVTestCase {
                       Point(x: 2, y: 1),
                       Point(x: 3, y: 1)]
 
-        var hull = [Int32]()
+        let hull = IntVector()
 
-        Imgproc.convexHull(points: points, hull: &hull, clockwise: true)
+        Imgproc.convexHull(points: points, hull: hull, clockwise: true)
 
-        XCTAssert([3, 2, 1, 0] == hull)
+        let expHull = IntVector([3, 2, 1, 0])
+        XCTAssert(expHull.array == hull.array)
     }
 
     func testConvexityDefects() throws {
@@ -402,13 +404,13 @@ class ImgprocTest: OpenCVTestCase {
                       Point(x: 20, y: 10),
                       Point(x: 30, y: 10)]
 
-        var hull = [Int32]()
-        Imgproc.convexHull(points: points, hull: &hull)
+        let hull = IntVector()
+        Imgproc.convexHull(points: points, hull: hull)
 
-        var convexityDefects = [Int4]()
-        Imgproc.convexityDefects(contour: points, convexhull: hull, convexityDefects: &convexityDefects)
+        let convexityDefects = NSMutableArray()
+        Imgproc.convexityDefects(contour: points, convexhull: hull, convexityDefects: convexityDefects)
 
-        XCTAssertTrue(Int4(v0: 3, v1: 0, v2: 5, v3: 3620) == convexityDefects[0])
+        XCTAssertTrue(Int4(v0: 3, v1: 0, v2: 5, v3: 3620) == (convexityDefects[0] as! Int4))
     }
 
     func testCornerEigenValsAndVecsMatMatIntInt() throws {
@@ -541,10 +543,10 @@ class ImgprocTest: OpenCVTestCase {
     func testDrawContoursMatListOfMatIntScalar() {
         let gray0clone = gray0.clone()
         Imgproc.rectangle(img: gray0clone, pt1: Point(x: 1, y: 2), pt2: Point(x: 7, y: 8), color: Scalar(100))
-        var contours = [[Point]]()
-        Imgproc.findContours(image: gray0clone, contours: &contours, hierarchy: Mat(), mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
+        let contours = NSMutableArray()
+        Imgproc.findContours(image: gray0clone, contours: contours, hierarchy: Mat(), mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
 
-        Imgproc.drawContours(image: gray0clone, contours: contours, contourIdx: -1, color: Scalar(0))
+        Imgproc.drawContours(image: gray0clone, contours: contours as! [[Point]], contourIdx: -1, color: Scalar(0))
 
         XCTAssertEqual(0, Core.countNonZero(src: gray0clone))
     }
@@ -552,10 +554,10 @@ class ImgprocTest: OpenCVTestCase {
     func testDrawContoursMatListOfMatIntScalarInt() {
         let gray0clone = gray0.clone()
         Imgproc.rectangle(img: gray0clone, pt1: Point(x: 1, y: 2), pt2: Point(x: 7, y: 8), color: Scalar(100))
-        var contours = [[Point]]()
-        Imgproc.findContours(image: gray0clone, contours: &contours, hierarchy: Mat(), mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
+        let contours = NSMutableArray()
+        Imgproc.findContours(image: gray0clone, contours: contours, hierarchy: Mat(), mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
 
-        Imgproc.drawContours(image: gray0clone, contours: contours, contourIdx: -1, color: Scalar(0), thickness: Core.FILLED)
+        Imgproc.drawContours(image: gray0clone, contours: contours as! [[Point]], contourIdx: -1, color: Scalar(0), thickness: Core.FILLED)
 
         XCTAssertEqual(0, Core.countNonZero(src: gray0clone))
     }
@@ -629,10 +631,10 @@ class ImgprocTest: OpenCVTestCase {
 
     func testFindContoursMatListOfMatMatIntInt() {
         let img = Mat(rows: 50, cols: 50, type: CvType.CV_8UC1, scalar: Scalar(0))
-        var contours = [[Point]]()
+        let contours = NSMutableArray()
         let hierarchy = Mat()
 
-        Imgproc.findContours(image: img, contours: &contours, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
+        Imgproc.findContours(image: img, contours: contours, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
 
         // no contours on empty image
         XCTAssertEqual(contours.count, 0)
@@ -641,7 +643,7 @@ class ImgprocTest: OpenCVTestCase {
         Imgproc.rectangle(img: img, pt1: Point(x: 10, y: 20), pt2: Point(x: 20, y: 30), color: Scalar(100), thickness: 3, lineType: .LINE_AA, shift: 0)
         Imgproc.rectangle(img: img, pt1: Point(x: 30, y: 35), pt2: Point(x: 40, y: 45), color: Scalar(200))
 
-        Imgproc.findContours(image: img, contours: &contours, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
+        Imgproc.findContours(image: img, contours: contours, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
 
         // two contours of two rectangles
         XCTAssertEqual(contours.count, 2)
@@ -651,30 +653,27 @@ class ImgprocTest: OpenCVTestCase {
     func testFindContoursMatListOfMatMatIntIntPoint() throws {
         let img = Mat(rows: 50, cols: 50, type: CvType.CV_8UC1, scalar: Scalar(0))
         let img2 = img.submat(rowStart: 5, rowEnd: 50, colStart: 3, colEnd: 50)
-        var contours = [[Point]]()
-        var contours2 = [[Point]]()
+        let contours = NSMutableArray()
+        let contours2 = NSMutableArray()
         let hierarchy = Mat()
 
         Imgproc.rectangle(img: img, pt1: Point(x: 10, y: 20), pt2: Point(x: 20, y: 30), color: Scalar(100), thickness: 3, lineType: .LINE_AA, shift: 0)
         Imgproc.rectangle(img: img, pt1: Point(x: 30, y: 35), pt2: Point(x: 40, y: 45), color: Scalar(200))
 
-        Imgproc.findContours(image: img, contours: &contours, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
-        Imgproc.findContours(image: img2, contours: &contours2, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE, offset: Point(x: 3, y: 5))
+        Imgproc.findContours(image: img, contours: contours, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE)
+        Imgproc.findContours(image: img2, contours: contours2, hierarchy: hierarchy, mode: .RETR_EXTERNAL, method: .CHAIN_APPROX_SIMPLE, offset: Point(x: 3, y: 5))
 
         XCTAssertEqual(contours.count, contours2.count)
-        XCTAssert(contours[0] == contours2[0])
+        XCTAssert(contours[0] as! [Point] == contours2[0] as! [Point])
     }
 
     func testFitEllipse() {
         let points = [Point2f(x: 0, y: 0), Point2f(x: -1, y: 1), Point2f(x: 1, y: 1), Point2f(x: 1, y: -1), Point2f(x: -1, y: -1)]
         let rrect = Imgproc.fitEllipse(points: points)
 
-        let FIT_ELLIPSE_CENTER_EPS:Float = 0.01
-        let FIT_ELLIPSE_SIZE_EPS:Float = 0.4
-
-        assertPoint2fEquals(Point2f(x: 0, y: 0), rrect.center, FIT_ELLIPSE_CENTER_EPS)
-        XCTAssertEqual(Float(2.828), rrect.size.width, accuracy: FIT_ELLIPSE_SIZE_EPS)
-        XCTAssertEqual(Float(2.828), rrect.size.height, accuracy: FIT_ELLIPSE_SIZE_EPS)
+        assertPoint2fEquals(Point2f(x: 0, y: 0), rrect.center, OpenCVTestCase.FEPS)
+        XCTAssertEqual(Float(2.828), rrect.size.width, accuracy: OpenCVTestCase.FEPS)
+        XCTAssertEqual(Float(2.828), rrect.size.height, accuracy: OpenCVTestCase.FEPS)
     }
 
     func testFitLine() throws {
@@ -851,9 +850,9 @@ class ImgprocTest: OpenCVTestCase {
     func testGoodFeaturesToTrackMatListOfPointIntDoubleDouble() {
         let src = gray0
         Imgproc.rectangle(img: src, pt1: Point(x: 2, y: 2), pt2: Point(x: 8, y: 8), color: Scalar(100), thickness: -1)
-        var lp = [Point]()
+        let lp = NSMutableArray()
 
-        Imgproc.goodFeaturesToTrack(image: src, corners: &lp, maxCorners: 100, qualityLevel: 0.01, minDistance: 3)
+        Imgproc.goodFeaturesToTrack(image: src, corners: lp, maxCorners: 100, qualityLevel: 0.01, minDistance: 3)
 
         XCTAssertEqual(4, lp.count)
     }
@@ -861,9 +860,9 @@ class ImgprocTest: OpenCVTestCase {
     func testGoodFeaturesToTrackMatListOfPointIntDoubleDoubleMatIntBooleanDouble() {
         let src = gray0
         Imgproc.rectangle(img: src, pt1: Point(x: 2, y: 2), pt2: Point(x: 8, y: 8), color: Scalar(100), thickness: -1)
-        var lp = [Point]()
+        let lp = NSMutableArray()
 
-        Imgproc.goodFeaturesToTrack(image: src, corners: &lp, maxCorners: 100, qualityLevel: 0.01, minDistance: 3, mask: gray1, blockSize: 4, gradientSize: 3, useHarrisDetector: true, k: 0)
+        Imgproc.goodFeaturesToTrack(image: src, corners: lp, maxCorners: 100, qualityLevel: 0.01, minDistance: 3, mask: gray1, blockSize: 4, gradientSize: 3, useHarrisDetector: true, k: 0)
 
         XCTAssertEqual(4, lp.count)
     }
@@ -1567,12 +1566,12 @@ class ImgprocTest: OpenCVTestCase {
         let arcStart:Int32 = 30
         let arcEnd:Int32 = 60
         let delta:Int32 = 2
-        var pts = [Point]()
+        let pts = NSMutableArray()
 
-        Imgproc.ellipse2Poly(center: center, axes: axes, angle: angle, arcStart: arcStart, arcEnd: arcEnd, delta: delta, pts: &pts)
+        Imgproc.ellipse2Poly(center: center, axes: axes, angle: angle, arcStart: arcStart, arcEnd: arcEnd, delta: delta, pts: pts)
 
         let truth = [Point(x: 5, y: 6), Point(x: 4, y: 6)]
-        XCTAssert(truth == pts)
+        XCTAssert(truth == pts as! [Point])
     }
 
     func testEllipseMatPointSizeDoubleDoubleDoubleScalar() {

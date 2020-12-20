@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Mat representation of an array of doubles
 */
-CV_EXPORTS @interface MatOfDouble : Mat
+@interface MatOfDouble : Mat
 
 #pragma mark - Constructors
 

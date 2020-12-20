@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Mat representation of an array of DMatch objects
 */
-CV_EXPORTS @interface MatOfDMatch : Mat
+@interface MatOfDMatch : Mat
 
 #pragma mark - Constructors
 

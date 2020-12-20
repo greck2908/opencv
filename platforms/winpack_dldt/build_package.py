@@ -133,10 +133,9 @@ def git_checkout(dst, url, branch, revision, clone_extra_args, noFetch=False):
                 (['-b', branch] if branch else []) +
                 clone_extra_args + [url, '.'], cwd=dst)
     else:
-        execute(cmd=['git', 'fetch', 'origin'] + ([branch + ':' + branch] if branch else []), cwd=dst)
+        execute(cmd=['git', 'fetch', 'origin'] + ([branch] if branch else []), cwd=dst)
     execute(cmd=['git', 'reset', '--hard'], cwd=dst)
-    execute(cmd=['git', 'clean', '-f', '-d'], cwd=dst)
-    execute(cmd=['git', 'checkout', '--force', '-B', 'winpack_dldt', revision], cwd=dst)
+    execute(cmd=['git', 'checkout', '-B', 'winpack_dldt', revision], cwd=dst)
     execute(cmd=['git', 'clean', '-f', '-d'], cwd=dst)
     execute(cmd=['git', 'submodule', 'init'], cwd=dst)
     execute(cmd=['git', 'submodule', 'update', '--force', '--depth=1000'], cwd=dst)
@@ -150,10 +149,6 @@ def git_apply_patch(src_dir, patch_file):
     patch_file = str(patch_file)  # Python 3.5 may not handle Path
     assert os.path.exists(patch_file), patch_file
     execute(cmd=['git', 'apply', '--3way', '-v', '--ignore-space-change', str(patch_file)], cwd=src_dir)
-    execute(cmd=['git', '--no-pager', 'diff', 'HEAD'], cwd=src_dir)
-    os.environ['GIT_AUTHOR_NAME'] = os.environ['GIT_COMMITTER_NAME']='build'
-    os.environ['GIT_AUTHOR_EMAIL'] = os.environ['GIT_COMMITTER_EMAIL']='build@opencv.org'
-    execute(cmd=['git', 'commit', '-am', 'apply opencv patch'], cwd=src_dir)
 
 
 #===================================================================================================
@@ -190,17 +185,6 @@ class BuilderDLDT:
             self.srcdir = prepare_dir(self.outdir / 'sources', clean=clean_src_dir)
         self.build_dir = prepare_dir(self.outdir / 'build', clean=self.config.clean_dldt)
         self.sysrootdir = prepare_dir(self.outdir / 'sysroot', clean=self.config.clean_dldt)
-
-        if self.config.build_subst_drive:
-            if os.path.exists(self.config.build_subst_drive + ':\\'):
-                execute(['subst', self.config.build_subst_drive + ':', '/D'])
-            execute(['subst', self.config.build_subst_drive + ':', str(self.outdir)])
-            def fix_path(p):
-                return str(p).replace(str(self.outdir), self.config.build_subst_drive + ':')
-            self.srcdir = Path(fix_path(self.srcdir))
-            self.build_dir = Path(fix_path(self.build_dir))
-            self.sysrootdir = Path(fix_path(self.sysrootdir))
-
 
     def init_patchset(self):
         cpath = self.cpath
@@ -271,22 +255,13 @@ class BuilderDLDT:
             BUILD_TESTS='OFF',
             ENABLE_OPENCV='OFF',
             ENABLE_GNA='OFF',
-            ENABLE_SPEECH_DEMO='OFF',  # 2020.4+
             NGRAPH_DOC_BUILD_ENABLE='OFF',
             NGRAPH_UNIT_TEST_ENABLE='OFF',
             NGRAPH_UNIT_TEST_OPENVINO_ENABLE='OFF',
             NGRAPH_TEST_UTIL_ENABLE='OFF',
             NGRAPH_ONNX_IMPORT_ENABLE='OFF',
             CMAKE_INSTALL_PREFIX=str(self.build_dir / 'install'),
-            OUTPUT_ROOT=str(self.build_dir),  # 2020.4+
         )
-
-        self.build_config_file = str(self.cpath / 'build.config.py')  # Python 3.5 may not handle Path
-        if os.path.exists(str(self.build_config_file)):
-            with open(self.build_config_file, 'r') as f:
-                cfg = f.read()
-            exec(compile(cfg, str(self.build_config_file), 'exec'))
-            log.info('DLDT processed build configuration script')
 
         cmd += [ '-D%s=%s' % (k, v) for (k, v) in cmake_vars.items() if v is not None]
         if self.config.cmake_option_dldt:
@@ -295,6 +270,14 @@ class BuilderDLDT:
         cmd.append(str(self.srcdir))
 
         build_dir = self.build_dir
+        if self.config.build_subst_drive:
+            if os.path.exists(self.config.build_subst_drive + ':\\'):
+                execute(['subst', self.config.build_subst_drive + ':', '/D'])
+            def fix_path(p):
+                return str(p).replace(str(self.outdir), self.config.build_subst_drive + ':')
+            execute(['subst', self.config.build_subst_drive + ':', str(self.outdir)])
+            cmd = [fix_path(c) for c in cmd]
+            build_dir = Path(fix_path(build_dir))
         try:
             execute(cmd, cwd=build_dir)
 
@@ -308,6 +291,8 @@ class BuilderDLDT:
             cmd = [self.cmake_path, '-DBUILD_TYPE=' + build_config, '-P', 'cmake_install.cmake']
             execute(cmd, cwd=build_dir / 'ngraph')
         except:
+            if self.config.build_subst_drive:
+                execute(['subst', self.config.build_subst_drive + ':', '/D'])
             raise
 
         log.info('DLDT build completed')
@@ -320,11 +305,6 @@ class BuilderDLDT:
         exec(compile(cfg, cfg_file, 'exec'))
 
         log.info('DLDT sysroot preparation completed')
-
-
-    def cleanup(self):
-        if self.config.build_subst_drive:
-            execute(['subst', self.config.build_subst_drive + ':', '/D'])
 
 
 #===================================================================================================
@@ -359,8 +339,6 @@ class Builder:
             CMAKE_INSTALL_PREFIX=str(self.install_dir),
             INSTALL_PDB='ON',
             INSTALL_PDB_COMPONENT_EXCLUDE_FROM_ALL='OFF',
-
-            VIDEOIO_PLUGIN_LIST='all',
 
             OPENCV_SKIP_CMAKE_ROOT_CONFIG='ON',
             OPENCV_BIN_INSTALL_PATH='bin',
@@ -455,8 +433,8 @@ class Builder:
 def main():
 
     dldt_src_url = 'https://github.com/openvinotoolkit/openvino'
-    dldt_src_commit = '2021.2'
-    dldt_release = '2021020000'
+    dldt_src_commit = '2020.3.0'
+    dldt_release = '2020030000'
 
     build_cache_dir_default = os.environ.get('BUILD_CACHE_DIR', '.build_cache')
     build_subst_drive = os.environ.get('BUILD_SUBST_DRIVE', None)
@@ -488,7 +466,7 @@ def main():
     parser.add_argument('--dldt_reference_dir', help='DLDT reference git repository (optional)')
     parser.add_argument('--dldt_src_dir', help='DLDT custom source repository (skip git checkout and patching, use for TESTING only)')
 
-    parser.add_argument('--dldt_config', help='Specify DLDT build configuration (defaults to evaluate from DLDT commit/branch)')
+    parser.add_argument('--dldt_config', help='Specify DLDT build configuration (defaults to DLDT commit)')
 
     args = parser.parse_args()
 
@@ -514,10 +492,7 @@ def main():
         args.opencv_dir = os.path.abspath(args.opencv_dir)
 
     if not args.dldt_config:
-        if args.dldt_src_commit == 'releases/2020/4' or args.dldt_src_branch == 'releases/2020/4':
-            args.dldt_config = '2020.4'
-        else:
-            args.dldt_config = args.dldt_src_commit
+        args.dldt_config = args.dldt_src_commit
 
     _opencv_dir = check_dir(args.opencv_dir)
     _outdir = prepare_dir(args.output_dir)
@@ -529,18 +504,14 @@ def main():
 
     builder_dldt = BuilderDLDT(args)
 
-    try:
-        builder_dldt.prepare_sources()
-        builder_dldt.build()
-        builder_dldt.make_sysroot()
+    builder_dldt.prepare_sources()
+    builder_dldt.build()
+    builder_dldt.make_sysroot()
 
-        builder_opencv = Builder(args)
-        builder_opencv.build(builder_dldt)
-        builder_opencv.copy_sysroot(builder_dldt)
-        builder_opencv.package_sources()
-    except:
-        builder_dldt.cleanup()
-        raise
+    builder_opencv = Builder(args)
+    builder_opencv.build(builder_dldt)
+    builder_opencv.copy_sysroot(builder_dldt)
+    builder_opencv.package_sources()
 
     log.info("=====")
     log.info("===== Build finished")

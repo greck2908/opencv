@@ -42,11 +42,10 @@ class GCall::Priv
 {
 public:
     std::vector<GArg> m_args;
-    GKernel     m_k;
+    const GKernel     m_k;
 
     // TODO: Rename to "constructionNode" or smt to reflect its lifetime
     GNode             m_node;
-    cv::util::any     m_params;
 
     explicit Priv(const GKernel &k);
 };

@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Mat representation of an array of vectors of four ints
 */
-CV_EXPORTS @interface MatOfInt4 : Mat
+@interface MatOfInt4 : Mat
 
 #pragma mark - Constructors
 

@@ -2,7 +2,7 @@
 #include <opencv2/gapi/render/render.hpp> // Kernel API's
 
 #include "api/render_ocv.hpp"
-#include "backends/render/ft_render.hpp"
+#include "api/ft_render.hpp"
 
 namespace cv
 {
@@ -146,8 +146,12 @@ struct EmptyConverter
 template <typename ColorConverter>
 void drawPrimitivesOCV(cv::Mat& in,
                        const cv::gapi::wip::draw::Prims& prims,
-                       std::shared_ptr<cv::gapi::wip::draw::FTTextRender>& ftpr)
+                       cv::gapi::wip::draw::FTTextRender* ftpr)
 {
+#ifndef HAVE_FREETYPE
+    cv::util::suppress_unused_warning(ftpr);
+#endif
+
     using namespace cv::gapi::wip::draw;
 
     ColorConverter converter;
@@ -173,6 +177,7 @@ void drawPrimitivesOCV(cv::Mat& in,
 
             case Prim::index_of<FText>():
             {
+#ifdef HAVE_FREETYPE
                 const auto& ftp  = cv::util::get<FText>(p);
                 const auto color = converter.cvtColor(ftp.color);
 
@@ -191,6 +196,9 @@ void drawPrimitivesOCV(cv::Mat& in,
                 cv::Point tl(ftp.org.x, ftp.org.y - mask.size().height + baseline);
 
                 blendTextMask(in, mask, tl, color);
+#else
+                cv::util::throw_error(std::runtime_error("FreeType not found !"));
+#endif
                 break;
             }
 
@@ -243,16 +251,16 @@ void drawPrimitivesOCV(cv::Mat& in,
     }
 }
 
-void drawPrimitivesOCVBGR(cv::Mat                                                  &in,
-                          const cv::gapi::wip::draw::Prims                         &prims,
-                          std::shared_ptr<cv::gapi::wip::draw::FTTextRender> &ftpr)
+void drawPrimitivesOCVBGR(cv::Mat &in,
+                          const cv::gapi::wip::draw::Prims &prims,
+                          cv::gapi::wip::draw::FTTextRender* ftpr)
 {
     drawPrimitivesOCV<EmptyConverter>(in, prims, ftpr);
 }
 
-void drawPrimitivesOCVYUV(cv::Mat                                                  &in,
-                          const cv::gapi::wip::draw::Prims                         &prims,
-                          std::shared_ptr<cv::gapi::wip::draw::FTTextRender> &ftpr)
+void drawPrimitivesOCVYUV(cv::Mat &in,
+                          const cv::gapi::wip::draw::Prims &prims,
+                          cv::gapi::wip::draw::FTTextRender* ftpr)
 {
     drawPrimitivesOCV<BGR2YUVConverter>(in, prims, ftpr);
 }

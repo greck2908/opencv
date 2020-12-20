@@ -13,7 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Mat representation of an array of floats
 */
-CV_EXPORTS @interface MatOfFloat : Mat
+@interface MatOfFloat : Mat
 
 #ifdef __cplusplus
 - (instancetype)initWithNativeMat:(cv::Mat*)nativeMat;

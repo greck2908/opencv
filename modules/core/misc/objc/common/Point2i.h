@@ -7,9 +7,7 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv2/core.hpp"
-#else
-#define CV_EXPORTS
+#import "opencv.hpp"
 #endif
 
 #import <Foundation/Foundation.h>
@@ -22,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 * Represents a two dimensional point the coordinate values of which are of type `int`
 */
 NS_SWIFT_NAME(Point)
-CV_EXPORTS @interface Point2i : NSObject
+@interface Point2i : NSObject
 
 # pragma mark - Properties
 

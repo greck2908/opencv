@@ -22,10 +22,8 @@ struct Name                                      \
 
 namespace opencv_test
 {
-
-// types from anonymous namespace doesn't work well with templates
-inline namespace gapi_ocv_stateful_kernel_test_utils {
-
+namespace
+{
 struct UserStruct
 {
     UserStruct() = default;
@@ -43,8 +41,7 @@ private:
     short _myShortVal;
     float _myFloatVal;
 };
-
-} // namespace
+} // anonymous namespace
 } // opencv_test
 
 #endif // OPENCV_GAPI_OCV_STATEFUL_KERNEL_TESTS_UTILS_HPP

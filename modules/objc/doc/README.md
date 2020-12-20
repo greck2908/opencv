@@ -11,3 +11,5 @@ To get started: add the OpenCV framework to your project and add the following t
 ###Swift
 
     import OpenCV
+
+For details of core OpenCV functionality see: `Core`, `Mat`, `Imgproc`

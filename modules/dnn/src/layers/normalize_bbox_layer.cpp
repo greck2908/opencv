@@ -75,8 +75,7 @@ public:
             if (pnorm != 2)
                 return false;
 
-            bool isMyriad = preferableTarget == DNN_TARGET_MYRIAD || preferableTarget == DNN_TARGET_HDDL;
-            if (backendId == DNN_BACKEND_INFERENCE_ENGINE_NN_BUILDER_2019 && isMyriad)
+            if (backendId == DNN_BACKEND_INFERENCE_ENGINE_NN_BUILDER_2019 && preferableTarget == DNN_TARGET_MYRIAD)
                 return !acrossSpatial;
 
             return startAxis == 1;

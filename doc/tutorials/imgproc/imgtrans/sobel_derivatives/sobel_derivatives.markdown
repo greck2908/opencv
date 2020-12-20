@@ -1,15 +1,8 @@
 Sobel Derivatives {#tutorial_sobel_derivatives}
 =================
 
-@tableofcontents
-
 @prev_tutorial{tutorial_copyMakeBorder}
 @next_tutorial{tutorial_laplace_operator}
-
-|    |    |
-| -: | :- |
-| Original author | Ana Huamán |
-| Compatibility | OpenCV >= 3.0 |
 
 Goal
 ----

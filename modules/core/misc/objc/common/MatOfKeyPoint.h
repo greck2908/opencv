@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Mat representation of an array of KeyPoint objects
 */
-CV_EXPORTS @interface MatOfKeyPoint : Mat
+@interface MatOfKeyPoint : Mat
 
 #pragma mark - Constructors
 

@@ -10,14 +10,13 @@
 #ifdef __cplusplus
 #import <vector>
 #endif
-#import "CVObjcUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
 * Utility class to wrap a `std::vector<float>`
 */
-CV_EXPORTS @interface FloatVector : NSObject
+@interface FloatVector : NSObject
 
 #pragma mark - Constructors
 
