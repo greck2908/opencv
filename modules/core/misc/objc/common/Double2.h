@@ -7,7 +7,9 @@
 #pragma once
 
 #ifdef __cplusplus
-#import "opencv.hpp"
+#import "opencv2/core.hpp"
+#else
+#define CV_EXPORTS
 #endif
 
 #import <Foundation/Foundation.h>
@@ -19,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * Simple wrapper for a vector of two `double`
 */
-@interface Double2 : NSObject
+CV_EXPORTS @interface Double2 : NSObject
 
 #pragma mark - Properties
 
@@ -32,11 +34,6 @@ NS_ASSUME_NONNULL_BEGIN
 * Second vector element
 */
 @property double v1;
-
-/**
-* Third vector element
-*/
-@property double v2;
 
 
 #ifdef __cplusplus

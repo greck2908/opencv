@@ -17,9 +17,7 @@ endif()
 
 include(cmake/OpenCVMinDepVersions.cmake)
 
-if(CMAKE_GENERATOR MATCHES Xcode AND XCODE_VERSION VERSION_GREATER 4.3)
-  cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-elseif(CMAKE_SYSTEM_NAME MATCHES WindowsPhone OR CMAKE_SYSTEM_NAME MATCHES WindowsStore)
+if(CMAKE_SYSTEM_NAME MATCHES WindowsPhone OR CMAKE_SYSTEM_NAME MATCHES WindowsStore)
   cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
   #Required to resolve linker error issues due to incompatibility with CMake v3.0+ policies.
   #CMake fails to find _fseeko() which leads to subsequent linker error.
@@ -103,7 +101,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ${ENABLE_PIC})
 ocv_cmake_hook(PRE_CMAKE_BOOTSTRAP)
 
 # Bootstap CMake system: setup CMAKE_SYSTEM_NAME and other vars
+if(OPENCV_WORKAROUND_CMAKE_20989)
+  set(CMAKE_SYSTEM_PROCESSOR_BACKUP ${CMAKE_SYSTEM_PROCESSOR})
+endif()
 enable_language(CXX C)
+if(OPENCV_WORKAROUND_CMAKE_20989)
+  set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR_BACKUP})
+endif()
 
 ocv_cmake_hook(POST_CMAKE_BOOTSTRAP)
 
@@ -209,6 +213,7 @@ OCV_OPTION(OPENCV_ENABLE_NONFREE "Enable non-free algorithms" OFF)
 OCV_OPTION(OPENCV_FORCE_3RDPARTY_BUILD   "Force using 3rdparty code from source" OFF)
 OCV_OPTION(BUILD_ZLIB               "Build zlib from source"             (WIN32 OR APPLE OR OPENCV_FORCE_3RDPARTY_BUILD) )
 OCV_OPTION(BUILD_TIFF               "Build libtiff from source"          (WIN32 OR ANDROID OR APPLE OR OPENCV_FORCE_3RDPARTY_BUILD) )
+OCV_OPTION(BUILD_OPENJPEG           "Build OpenJPEG from source"         (WIN32 OR ANDRIOD OR APPLE OR OPENCV_FORCE_3RDPARTY_BUILD) )
 OCV_OPTION(BUILD_JASPER             "Build libjasper from source"        (WIN32 OR ANDROID OR APPLE OR OPENCV_FORCE_3RDPARTY_BUILD) )
 OCV_OPTION(BUILD_JPEG               "Build libjpeg from source"          (WIN32 OR ANDROID OR APPLE OR OPENCV_FORCE_3RDPARTY_BUILD) )
 OCV_OPTION(BUILD_PNG                "Build libpng from source"           (WIN32 OR ANDROID OR APPLE OR OPENCV_FORCE_3RDPARTY_BUILD) )
@@ -360,6 +365,9 @@ OCV_OPTION(WITH_MSMF_DXVA "Enable hardware acceleration in Media Foundation back
 OCV_OPTION(WITH_XIMEA "Include XIMEA cameras support" OFF
   VISIBLE_IF NOT ANDROID AND NOT WINRT
   VERIFY HAVE_XIMEA)
+OCV_OPTION(WITH_UEYE "Include UEYE camera support" OFF
+  VISIBLE_IF NOT ANDROID AND NOT APPLE AND NOT WINRT
+  VERIFY HAVE_UEYE)
 OCV_OPTION(WITH_XINE "Include Xine support (GPL)" OFF
   VISIBLE_IF UNIX AND NOT APPLE AND NOT ANDROID
   VERIFY HAVE_XINE)
@@ -432,6 +440,9 @@ OCV_OPTION(WITH_ANDROID_MEDIANDK "Use Android Media NDK for Video I/O (Android)"
 OCV_OPTION(WITH_TENGINE "Include Arm Inference Tengine support" OFF
   VISIBLE_IF (ARM OR AARCH64) AND (UNIX OR ANDROID) AND NOT IOS
   VERIFY HAVE_TENGINE)
+OCV_OPTION(WITH_ONNX "Include Microsoft ONNX Runtime support" OFF
+  VISIBLE_IF TRUE
+  VERIFY HAVE_ONNX)
 
 # OpenCV build components
 # ===================================================
@@ -457,6 +468,7 @@ OCV_OPTION(BUILD_OBJC               "Enable Objective-C support"                
 # OpenCV installation options
 # ===================================================
 OCV_OPTION(INSTALL_CREATE_DISTRIB   "Change install rules to build the distribution package" OFF )
+OCV_OPTION(INSTALL_BIN_EXAMPLES     "Install prebuilt examples" WIN32 IF BUILD_EXAMPLES)
 OCV_OPTION(INSTALL_C_EXAMPLES       "Install C examples"        OFF )
 OCV_OPTION(INSTALL_PYTHON_EXAMPLES  "Install Python examples"   OFF )
 OCV_OPTION(INSTALL_ANDROID_EXAMPLES "Install Android examples"  OFF IF ANDROID )
@@ -474,7 +486,7 @@ OCV_OPTION(OPENCV_ENABLE_MEMORY_SANITIZER "Better support for memory/address san
 OCV_OPTION(ENABLE_OMIT_FRAME_POINTER  "Enable -fomit-frame-pointer for GCC"                      ON   IF CV_GCC )
 OCV_OPTION(ENABLE_POWERPC             "Enable PowerPC for GCC"                                   ON   IF (CV_GCC AND CMAKE_SYSTEM_PROCESSOR MATCHES powerpc.*) )
 OCV_OPTION(ENABLE_FAST_MATH           "Enable compiler options for fast math optimizations on FP computations (not recommended)" OFF)
-if(NOT IOS AND (NOT ANDROID OR OPENCV_ANDROID_USE_LEGACY_FLAGS))  # Use CPU_BASELINE instead
+if(NOT IOS AND (NOT ANDROID OR OPENCV_ANDROID_USE_LEGACY_FLAGS) AND CMAKE_CROSSCOMPILING)  # Use CPU_BASELINE instead
 OCV_OPTION(ENABLE_NEON                "Enable NEON instructions"                                 (NEON OR ANDROID_ARM_NEON OR AARCH64) IF (CV_GCC OR CV_CLANG) AND (ARM OR AARCH64 OR IOS) )
 OCV_OPTION(ENABLE_VFPV3               "Enable VFPv3-D32 instructions"                            OFF  IF (CV_GCC OR CV_CLANG) AND (ARM OR AARCH64 OR IOS) )
 endif()
@@ -767,6 +779,11 @@ if(WITH_QUIRC)
   add_subdirectory(3rdparty/quirc)
   set(HAVE_QUIRC TRUE)
 endif()
+
+if(WITH_ONNX)
+  include(cmake/FindONNX.cmake)
+endif()
+
 # ----------------------------------------------------------------------------
 # OpenCV HAL
 # ----------------------------------------------------------------------------
@@ -1254,7 +1271,10 @@ if(WITH_TIFF OR HAVE_TIFF)
 endif()
 
 if(HAVE_OPENJPEG)
-  status("    JPEG 2000:" "OpenJPEG (ver ${OPENJPEG_MAJOR_VERSION}.${OPENJPEG_MINOR_VERSION}.${OPENJPEG_BUILD_VERSION})")
+  status("    JPEG 2000:" OpenJPEG_FOUND
+      THEN "OpenJPEG (ver ${OPENJPEG_MAJOR_VERSION}.${OPENJPEG_MINOR_VERSION}.${OPENJPEG_BUILD_VERSION})"
+      ELSE "build (ver ${OPENJPEG_VERSION})"
+  )
 elseif(HAVE_JASPER)
   status("    JPEG 2000:" JASPER_FOUND THEN "${JASPER_LIBRARY} (ver ${JASPER_VERSION_STRING})" ELSE "build Jasper (ver ${JASPER_VERSION_STRING})")
 elseif(WITH_OPENJPEG OR WITH_JASPER)
@@ -1361,6 +1381,10 @@ if(WITH_XIMEA OR HAVE_XIMEA)
   status("    XIMEA:" HAVE_XIMEA THEN YES ELSE NO)
 endif()
 
+if(WITH_UEYE OR HAVE_UEYE)
+  status("    uEye:" HAVE_UEYE THEN YES ELSE NO)
+endif()
+
 if(WITH_XINE OR HAVE_XINE)
   status("    Xine:"           HAVE_XINE           THEN "YES (ver ${XINE_VERSION})"     ELSE NO)
 endif()
@@ -1421,10 +1445,6 @@ endif()
 
 if(WITH_VA OR HAVE_VA)
   status("    VA:"            HAVE_VA          THEN "YES" ELSE NO)
-endif()
-
-if(WITH_VA_INTEL OR HAVE_VA_INTEL)
-  status("    Intel VA-API/OpenCL:"  HAVE_VA_INTEL       THEN "YES (OpenCL: ${VA_INTEL_IOCL_ROOT})" ELSE NO)
 endif()
 
 if(WITH_TENGINE OR HAVE_TENGINE)
@@ -1539,12 +1559,22 @@ if(WITH_OPENCL OR HAVE_OPENCL)
     IF HAVE_CLAMDFFT THEN "AMDFFT"
     IF HAVE_CLAMDBLAS THEN "AMDBLAS"
     IF HAVE_OPENCL_D3D11_NV THEN "NVD3D11"
+    IF HAVE_VA_INTEL THEN "INTELVA"
     ELSE "no extra features")
   status("")
   status("  OpenCL:"     HAVE_OPENCL   THEN   "YES (${opencl_features})" ELSE "NO")
   if(HAVE_OPENCL)
     status("    Include path:"  OPENCL_INCLUDE_DIRS THEN "${OPENCL_INCLUDE_DIRS}" ELSE "NO")
     status("    Link libraries:"       OPENCL_LIBRARIES THEN "${OPENCL_LIBRARIES}" ELSE "Dynamic load")
+  endif()
+endif()
+
+if(WITH_ONNX OR HAVE_ONNX)
+  status("")
+  status("  ONNX:"     HAVE_ONNX THEN "YES" ELSE "NO")
+  if(HAVE_ONNX)
+    status("    Include path:"  ONNX_INCLUDE_DIR THEN "${ONNX_INCLUDE_DIR}" ELSE "NO")
+    status("    Link libraries:" ONNX_LIBRARIES THEN "${ONNX_LIBRARIES}" ELSE "NO")
   endif()
 endif()
 
@@ -1615,6 +1645,10 @@ ocv_finalize_status()
 
 if(ENABLE_CONFIG_VERIFICATION)
   ocv_verify_config()
+endif()
+
+if(HAVE_CUDA AND COMMAND CUDA_BUILD_CLEAN_TARGET)
+  CUDA_BUILD_CLEAN_TARGET()
 endif()
 
 ocv_cmake_hook(POST_FINALIZE)

@@ -993,14 +993,30 @@ PyObject* pyopencv_from(const std::string& value)
 template<>
 bool pyopencv_to(PyObject* obj, String &value, const ArgInfo& info)
 {
-    CV_UNUSED(info);
     if(!obj || obj == Py_None)
+    {
         return true;
+    }
     std::string str;
     if (getUnicodeString(obj, str))
     {
         value = str;
         return true;
+    }
+    else
+    {
+        // If error hasn't been already set by Python conversion functions
+        if (!PyErr_Occurred())
+        {
+            // Direct access to underlying slots of PyObjectType is not allowed
+            // when limited API is enabled
+#ifdef Py_LIMITED_API
+            failmsg("Can't convert object to 'str' for '%s'", info.name);
+#else
+            failmsg("Can't convert object of type '%s' to 'str' for '%s'",
+                    obj->ob_type->tp_name, info.name);
+#endif
+        }
     }
     return false;
 }
@@ -1486,6 +1502,41 @@ template<typename _Tp> static inline PyObject* pyopencv_from_generic_vec(const s
     return seq;
 }
 
+template<std::size_t I = 0, typename... Tp>
+inline typename std::enable_if<I == sizeof...(Tp), void>::type
+convert_to_python_tuple(const std::tuple<Tp...>&, PyObject*) {  }
+
+template<std::size_t I = 0, typename... Tp>
+inline typename std::enable_if<I < sizeof...(Tp), void>::type
+convert_to_python_tuple(const std::tuple<Tp...>& cpp_tuple, PyObject* py_tuple)
+{
+    PyObject* item = pyopencv_from(std::get<I>(cpp_tuple));
+
+    if (!item)
+        return;
+
+    PyTuple_SetItem(py_tuple, I, item);
+    convert_to_python_tuple<I + 1, Tp...>(cpp_tuple, py_tuple);
+}
+
+
+template<typename... Ts>
+PyObject* pyopencv_from(const std::tuple<Ts...>& cpp_tuple)
+{
+    size_t size = sizeof...(Ts);
+    PyObject* py_tuple = PyTuple_New(size);
+    convert_to_python_tuple(cpp_tuple, py_tuple);
+    size_t actual_size = PyTuple_Size(py_tuple);
+
+    if (actual_size < size)
+    {
+        Py_DECREF(py_tuple);
+        return NULL;
+    }
+
+    return py_tuple;
+}
+
 template<>
 PyObject* pyopencv_from(const std::pair<int, double>& src)
 {
@@ -1891,7 +1942,6 @@ static int convert_to_char(PyObject *o, char *dst, const ArgInfo& info)
 
 
 #include "pyopencv_generated_enums.h"
-#include "pyopencv_custom_headers.h"
 
 #ifdef CVPY_DYNAMIC_INIT
 #define CVPY_TYPE(NAME, STORAGE, SNAME, _1, _2) CVPY_TYPE_DECLARE_DYNAMIC(NAME, STORAGE, SNAME)
@@ -1900,6 +1950,7 @@ static int convert_to_char(PyObject *o, char *dst, const ArgInfo& info)
 #endif
 #include "pyopencv_generated_types.h"
 #undef CVPY_TYPE
+#include "pyopencv_custom_headers.h"
 
 #include "pyopencv_generated_types_content.h"
 #include "pyopencv_generated_funcs.h"
@@ -1915,6 +1966,11 @@ static PyMethodDef special_methods[] = {
 #ifdef HAVE_OPENCV_DNN
   {"dnn_registerLayer", CV_PY_FN_WITH_KW(pyopencv_cv_dnn_registerLayer), "registerLayer(type, class) -> None"},
   {"dnn_unregisterLayer", CV_PY_FN_WITH_KW(pyopencv_cv_dnn_unregisterLayer), "unregisterLayer(type) -> None"},
+#endif
+#ifdef HAVE_OPENCV_GAPI
+  {"GIn", CV_PY_FN_WITH_KW(pyopencv_cv_GIn), "GIn(...) -> GInputProtoArgs"},
+  {"GOut", CV_PY_FN_WITH_KW(pyopencv_cv_GOut), "GOut(...) -> GOutputProtoArgs"},
+  {"gin", CV_PY_FN_WITH_KW(pyopencv_cv_gin), "gin(...) -> GRunArgs"},
 #endif
   {NULL, NULL},
 };
